@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assistência Técnica — Formulário de Satisfação</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161820;
+    --surface2: #1e2029;
+    --border: #2a2d3a;
+    --accent: #4f8ef7;
+    --accent2: #7c5ce8;
+    --success: #00c98d;
+    --text: #e8eaf0;
+    --muted: #666d85;
+    --card-radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; animation: fadeIn .4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ─── MANAGER SCREEN ─── */
+  .manager-wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  .manager-header {
+    margin-bottom: 48px;
+    text-align: center;
+  }
+  .manager-header .eyebrow {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .manager-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.15;
+  }
+  .manager-header p {
+    color: var(--muted);
+    font-size: 15px;
+    margin-top: 10px;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  /* TECHNICIAN CARDS */
+  .technicians-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+
+  .tech-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: border-color .25s, transform .2s;
+    cursor: default;
+  }
+  .tech-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .tech-avatar {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 18px;
+    flex-shrink: 0;
+    color: #fff;
+  }
+
+  .tech-info { flex: 1; min-width: 0; }
+  .tech-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 17px; }
+  .tech-role { color: var(--muted); font-size: 13px; font-weight: 300; margin-top: 2px; }
+
+  .tech-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13.5px;
+    cursor: pointer; border: none; transition: all .2s;
+    text-decoration: none;
+  }
+  .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #3a78e8; }
+
+  .btn-ghost {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #00b07c; }
+
+  .btn-wpp { background: #25D366; color: #fff; }
+  .btn-wpp:hover { background: #1fb855; }
+
+  .btn-email { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-email:hover { background: var(--border); }
+
+  .btn-accent2 { background: var(--accent2); color: #fff; }
+  .btn-accent2:hover { background: #6b4ed8; }
+
+  /* ADD TECHNICIAN */
+  .add-tech-bar {
+    display: flex; gap: 10px;
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--card-radius);
+    padding: 14px 16px;
+    align-items: center;
+  }
+  .add-tech-bar input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 9px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color .2s;
+  }
+  .add-tech-bar input:focus { border-color: var(--accent); }
+  .add-tech-bar input::placeholder { color: var(--muted); }
+
+  /* LINK POPUP */
+  .link-popup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 24px;
+  }
+  .link-popup-overlay.open { display: flex; }
+
+  .link-popup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%; max-width: 520px;
+    padding: 32px;
+    animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(.92); }
+    to { opacity:1; transform: scale(1); }
+  }
+
+  .link-popup h2 {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .link-popup .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+
+  .link-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    font-family: monospace;
+  }
+
+  .share-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .share-buttons .btn { flex: 1; justify-content: center; min-width: 120px; }
+
+  .popup-close {
+    display: block; width: 100%; text-align: center;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--muted); border-radius: 10px;
+    padding: 10px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    transition: all .2s;
+  }
+  .popup-close:hover { background: var(--border); color: var(--text); }
+
+  /* ─── FORM SCREEN ─── */
+  .form-wrap {
+    max-width: 660px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  .form-header {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .form-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .form-header .logo-text {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase;
+    opacity: .8; margin-bottom: 12px;
+  }
+  .form-header h1 {
+    font-family: 'Syne', sans-serif; font-size: clamp(22px, 4vw, 30px);
+    font-weight: 800; line-height: 1.2; color: #fff;
+    margin-bottom: 8px;
+  }
+  .form-header .tagline {
+    font-size: 13px; color: rgba(255,255,255,.75);
+    font-style: italic; font-weight: 300;
+  }
+
+  .pre-filled-info {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    background: rgba(255,255,255,.12);
+    border-radius: 10px; padding: 12px 16px;
+    margin-top: 16px;
+  }
+  .info-chip {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: rgba(255,255,255,.9);
+  }
+  .info-chip svg { width: 14px; height: 14px; opacity: .8; }
+
+  /* FORM SECTIONS */
+  .form-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span {
+    background: var(--accent); width: 6px; height: 6px;
+    border-radius: 50%; display: inline-block;
+  }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 500px) { .form-row { grid-template-columns: 1fr; } }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 12.5px; font-weight: 500;
+    color: var(--muted); margin-bottom: 7px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .field input, .field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color .2s;
+    resize: vertical;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field input[readonly] {
+    opacity: .6; cursor: not-allowed;
+    background: var(--bg);
+  }
+
+  /* RATING */
+  .rating-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .rating-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .rating-label { font-size: 14px; flex: 1; padding-right: 16px; line-height: 1.4; }
+  .stars { display: flex; gap: 6px; }
+  .star {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    color: var(--muted); transition: all .15s;
+    flex-shrink: 0;
+  }
+  .star:hover, .star.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .star.selected { box-shadow: 0 0 0 3px rgba(79,142,247,.25); }
+
+  /* NPS */
+  .nps-row { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; margin: 16px 0 8px; }
+  .nps-btn {
+    width: 40px; height: 40px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .15s;
+  }
+  .nps-btn:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  .nps-btn.selected { background: var(--accent2); border-color: var(--accent2); color: #fff;
+    box-shadow: 0 0 0 3px rgba(124,92,232,.25); }
+  .nps-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); }
+
+  /* SUBMIT */
+  .submit-area { padding: 24px 0 0; }
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #fff; border: none; border-radius: 12px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: opacity .2s, transform .2s;
+    letter-spacing: .5px;
+  }
+  .submit-btn:hover { opacity: .9; transform: translateY(-1px); }
+  .submit-btn:active { transform: translateY(0); }
+
+  /* SUCCESS SCREEN */
+  .success-wrap {
+    max-width: 500px; margin: 0 auto;
+    padding: 80px 24px; text-align: center;
+  }
+  .success-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--success), #00e8a8);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 28px;
+    box-shadow: 0 0 40px rgba(0,201,141,.3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 40px rgba(0,201,141,.3); }
+    50% { box-shadow: 0 0 60px rgba(0,201,141,.5); }
+  }
+  .success-icon svg { width: 40px; height: 40px; }
+  .success-wrap h1 {
+    font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .success-wrap p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ MANAGER SCREEN ════════════════════ -->
+<div id="screen-manager" class="screen active">
+  <div class="manager-wrap">
+    <div class="manager-header">
+      <div class="eyebrow">Assistência Técnica</div>
+      <h1>Gestor de<br>Satisfação</h1>
+      <p>Clique num técnico para gerar o link do formulário</p>
+    </div>
+
+    <div class="technicians-list" id="techList"></div>
+
+    <div class="add-tech-bar">
+      <input type="text" id="newTechName" placeholder="Nome do novo técnico…" onkeydown="if(event.key==='Enter') addTech()"/>
+      <input type="text" id="newTechRole" placeholder="Função (opcional)…" onkeydown="if(event.key==='Enter') addTech()"/>
+      <button class="btn btn-accent2" onclick="addTech()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ LINK POPUP ════════════════════ -->
+<div class="link-popup-overlay" id="linkPopup">
+  <div class="link-popup">
+    <h2 id="popupTitle">Link gerado!</h2>
+    <div class="sub" id="popupSub"></div>
+    <div class="link-box" id="popupLink"></div>
+    <div class="share-buttons">
+      <button class="btn btn-wpp" id="btnWpp" onclick="shareWpp()">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.999 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2.094 22l4.933-1.294A9.954 9.954 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"/></svg>
+        Enviar por WhatsApp
+      </button>
+      <button class="btn btn-email" id="btnEmail" onclick="shareEmail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+        Enviar por Email
+      </button>
+    </div>
+    <button class="btn btn-primary" onclick="copyLink()" style="width:100%;justify-content:center;margin-bottom:10px;" id="copyBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      Copiar link
+    </button>
+    <button class="popup-close" onclick="closePopup()">Fechar</button>
+  </div>
+</div>
+
+<!-- ════════════════════ FORM SCREEN ════════════════════ -->
+<div id="screen-form" class="screen">
+  <div class="form-wrap">
+    <div class="form-header">
+      <div class="logo-text">Assistência Técnica</div>
+      <h1>Formulário de<br>Satisfação</h1>
+      <div class="tagline">A sua opinião ajuda-nos a melhorar continuamente.</div>
+      <div class="pre-filled-info">
+        <div class="info-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Técnico: <strong id="formTechName">—</strong>
+        </div>
+        <div class="info-chip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Data: <strong id="formDate">—</strong>
+        </div>
+      </div>
+    </div>
+
+    <form id="satisfactionForm" onsubmit="submitForm(event)">
+
+      <!-- Client Data -->
+      <div class="form-section">
+        <div class="section-title"><span></span> Dados do Cliente</div>
+        <div class="form-row">
+          <div class="field">
+            <label>Empresa</label>
+            <input type="text" name="empresa" placeholder="Nome da empresa" required/>
+          </div>
+          <div class="field">
+            <label>Nome do Cliente</label>
+            <input type="text" name="nomeCliente" placeholder="O seu nome" required/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Data da Assistência</label>
+            <input type="date" name="dataAssistencia" required/>
+          </div>
+          <div class="field">
+            <label>Técnico</label>
+            <input type="text" name="tecnico" id="formTechField" readonly/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ratings -->
+      <div class="form-section">
+        <div class="section-title"><span></span> Avaliação do Serviço (1 = Insatisfeito | 5 = Muito Satisfeito)</div>
+
+        <div class="rating-row">
+          <div class="rating-label">1. Tempo de atendimento dentro de um prazo adequado</div>
+          <div class="stars" data-name="r1">
+            <div class="star" onclick="rate(this,'r1',1)">1</div>
+            <div class="star" onclick="rate(this,'r1',2)">2</div>
+            <div class="star" onclick="rate(this,'r1',3)">3</div>
+            <div class="star" onclick="rate(this,'r1',4)">4</div>
+            <div class="star" onclick="rate(this,'r1',5)">5</div>
+          </div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-label">2. Clareza na explicação técnica</div>
+          <div class="stars" data-name="r2">
+            <div class="star" onclick="rate(this,'r2',1)">1</div>
+            <div class="star" onclick="rate(this,'r2',2)">2</div>
+            <div class="star" onclick="rate(this,'r2',3)">3</div>
+            <div class="star" onclick="rate(this,'r2',4)">4</div>
+            <div class="star" onclick="rate(this,'r2',5)">5</div>
+          </div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-label">3. O técnico apresentou soluções ou alternativas adequadas?</div>
+          <div class="stars" data-name="r3">
+            <div class="star" onclick="rate(this,'r3',1)">1</div>
+            <div class="star" onclick="rate(this,'r3',2)">2</div>
+            <div class="star" onclick="rate(this,'r3',3)">3</div>
+            <div class="star" onclick="rate(this,'r3',4)">4</div>
+            <div class="star" onclick="rate(this,'r3',5)">5</div>
+          </div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-label">4. Profissionalismo e educação</div>
+          <div class="stars" data-name="r4">
+            <div class="star" onclick="rate(this,'r4',1)">1</div>
+            <div class="star" onclick="rate(this,'r4',2)">2</div>
+            <div class="star" onclick="rate(this,'r4',3)">3</div>
+            <div class="star" onclick="rate(this,'r4',4)">4</div>
+            <div class="star" onclick="rate(this,'r4',5)">5</div>
+          </div>
+        </div>
+        <div class="rating-row">
+          <div class="rating-label">5. Satisfação geral com o serviço prestado</div>
+          <div class="stars" data-name="r5">
+            <div class="star" onclick="rate(this,'r5',1)">1</div>
+            <div class="star" onclick="rate(this,'r5',2)">2</div>
+            <div class="star" onclick="rate(this,'r5',3)">3</div>
+            <div class="star" onclick="rate(this,'r5',4)">4</div>
+            <div class="star" onclick="rate(this,'r5',5)">5</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment -->
+      <div class="form-section">
+        <div class="section-title"><span></span> Comentário Adicional (opcional)</div>
+        <div class="field">
+          <textarea name="comentario" rows="4" placeholder="Partilhe qualquer sugestão ou observação…"></textarea>
+        </div>
+      </div>
+
+      <!-- NPS -->
+      <div class="form-section">
+        <div class="section-title"><span></span> Recomendação</div>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:4px">Qual a probabilidade de recomendar os nossos serviços a um colega ou empresa parceira?</p>
+        <div class="nps-row" id="npsRow"></div>
+        <div class="nps-labels"><span>Nada provável</span><span>Muito provável</span></div>
+      </div>
+
+      <div class="submit-area">
+        <button type="submit" class="submit-btn">Submeter Avaliação →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════ SUCCESS SCREEN ════════════════════ -->
+<div id="screen-success" class="screen">
+  <div class="success-wrap">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1>Obrigado pela<br>sua avaliação!</h1>
+    <p>A sua opinião é muito importante para nós e ajuda-nos a melhorar continuamente o serviço prestado.<br><br>Agradecemos sinceramente o seu tempo e a confiança no nosso serviço!</p>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────
+const COLORS = [
+  'linear-gradient(135deg,#4f8ef7,#7c5ce8)',
+  'linear-gradient(135deg,#00c98d,#4f8ef7)',
+  'linear-gradient(135deg,#f7a34f,#e85c7c)',
+  'linear-gradient(135deg,#7c5ce8,#e85c7c)',
+  'linear-gradient(135deg,#00c98d,#7c5ce8)',
+  'linear-gradient(135deg,#e85c7c,#f7a34f)',
+];
+
+let technicians = [
+  { id:1, name:'João Silva',   role:'Técnico Sênior' },
+  { id:2, name:'Ana Ferreira', role:'Técnica de Campo' },
+  { id:3, name:'Carlos Matos', role:'Técnico Especialista' },
+];
+let nextId = 4;
+const ratings = {};
+let selectedNps = null;
+let currentLink = '';
+let currentTech = null;
+
+// ─── ROUTING ────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// On load: check URL params
+(function init() {
+  const params = new URLSearchParams(location.search);
+  const tech = params.get('tecnico');
+  const date = params.get('data');
+  if (tech && date) {
+    loadFormScreen(tech, date);
+  } else {
+    renderTechs();
+    showScreen('manager');
+  }
+  buildNps();
+})();
+
+// ─── MANAGER ────────────────────────────────────────────────
+function renderTechs() {
+  const list = document.getElementById('techList');
+  list.innerHTML = '';
+  technicians.forEach((t, i) => {
+    const initials = t.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const color = COLORS[i % COLORS.length];
+    list.innerHTML += `
+      <div class="tech-card">
+        <div class="tech-avatar" style="background:${color}">${initials}</div>
+        <div class="tech-info">
+          <div class="tech-name">${t.name}</div>
+          <div class="tech-role">${t.role}</div>
+        </div>
+        <div class="tech-actions">
+          <button class="btn btn-primary" onclick="generateLink(${t.id})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            Gerar Link
+          </button>
+          <button class="btn btn-ghost" onclick="removeTech(${t.id})" title="Remover">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>`;
+  });
+}
+
+function addTech() {
+  const nameEl = document.getElementById('newTechName');
+  const roleEl = document.getElementById('newTechRole');
+  const name = nameEl.value.trim();
+  const role = roleEl.value.trim() || 'Técnico';
+  if (!name) { nameEl.focus(); return; }
+  technicians.push({ id: nextId++, name, role });
+  nameEl.value = ''; roleEl.value = '';
+  renderTechs();
+}
+
+function removeTech(id) {
+  technicians = technicians.filter(t => t.id !== id);
+  renderTechs();
+}
+
+// ─── LINK GENERATION ────────────────────────────────────────
+function generateLink(id) {
+  const t = technicians.find(x => x.id === id);
+  if (!t) return;
+  currentTech = t;
+  const today = new Date().toLocaleDateString('pt-PT', {day:'2-digit',month:'2-digit',year:'numeric'});
+  const base = location.origin + location.pathname;
+  const link = `${base}?tecnico=${encodeURIComponent(t.name)}&data=${encodeURIComponent(today)}`;
+  currentLink = link;
+  document.getElementById('popupTitle').textContent = `Link para ${t.name}`;
+  document.getElementById('popupSub').textContent = `Gerado em ${today} — partilhe com o cliente`;
+  document.getElementById('popupLink').textContent = link;
+  document.getElementById('linkPopup').classList.add('open');
+}
+
+function closePopup() {
+  document.getElementById('linkPopup').classList.remove('open');
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(currentLink).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copiado!';
+    setTimeout(() => {
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copiar link`;
+    }, 2000);
+  });
+}
+
+function shareWpp() {
+  const msg = encodeURIComponent(
+    `Olá! 👋\n\nO seu serviço técnico foi concluído por *${currentTech.name}*.\n\nPedimos que preencha o nosso breve formulário de satisfação — leva menos de 2 minutos e a sua opinião é muito valiosa para nós:\n\n${currentLink}\n\nObrigado pela confiança! 🙏`
+  );
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+function shareEmail() {
+  const subject = encodeURIComponent(`Formulário de Satisfação — Assistência Técnica`);
+  const body = encodeURIComponent(
+    `Exmo(a) Cliente,\n\nEsperamos que tenha ficado satisfeito/a com o serviço técnico prestado pelo/a ${currentTech.name}.\n\nPedimos que dedique 2 minutos para avaliar o nosso serviço, a sua opinião é fundamental para continuarmos a melhorar:\n\n${currentLink}\n\nAgradecemos o seu tempo e a confiança no nosso serviço!\n\nCom os melhores cumprimentos,\nEquipa de Assistência Técnica`
+  );
+  window.open(`mailto:?subject=${subject}&body=${body}`);
+}
+
+// ─── FORM SCREEN ────────────────────────────────────────────
+function loadFormScreen(techName, date) {
+  document.getElementById('formTechName').textContent = techName;
+  document.getElementById('formDate').textContent = date;
+  document.getElementById('formTechField').value = techName;
+  // set today's date as default
+  const todayISO = new Date().toISOString().split('T')[0];
+  document.querySelector('[name="dataAssistencia"]').value = todayISO;
+  showScreen('form');
+}
+
+// ─── RATINGS ────────────────────────────────────────────────
+function rate(el, name, val) {
+  ratings[name] = val;
+  const group = document.querySelector(`.stars[data-name="${name}"]`);
+  group.querySelectorAll('.star').forEach((s, i) => {
+    s.classList.toggle('selected', i < val);
+  });
+}
+
+// ─── NPS ────────────────────────────────────────────────────
+function buildNps() {
+  const row = document.getElementById('npsRow');
+  for (let i = 0; i <= 10; i++) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'nps-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      selectedNps = i;
+      document.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    row.appendChild(btn);
+  }
+}
+
+// ─── SUBMIT ─────────────────────────────────────────────────
+function submitForm(e) {
+  e.preventDefault();
+  // Basic validation: all ratings selected
+  const ratingKeys = ['r1','r2','r3','r4','r5'];
+  for (const k of ratingKeys) {
+    if (!ratings[k]) {
+      alert('Por favor, preencha todas as avaliações (1 a 5).');
+      return;
+    }
+  }
+  // NPS optional but encouraged
+  showScreen('success');
+}
+
+// Close popup on overlay click
+document.getElementById('linkPopup').addEventListener('click', function(e) {
+  if (e.target === this) closePopup();
+});
+</script>
+</body>
+</html>
